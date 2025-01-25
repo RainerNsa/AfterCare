@@ -9,6 +9,7 @@ require('dotenv').config();
 const brochures = require('./data/brochures');
 const PatientTracker = require('./models/PatientTracker');
 const { connectToDatabase, getDatabase } = require('./config/database');
+const { connectToRedis, cacheMiddleware, clearCache } = require('./config/redis');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,8 +48,8 @@ app.get('/health', (req, res) => {
   });
 });
 
-// GET /brochures/myomectomy - Returns structured JSON of brochure content
-app.get('/brochures/myomectomy', (req, res) => {
+// GET /brochures/myomectomy - Returns structured JSON of brochure content (cached)
+app.get('/brochures/myomectomy', cacheMiddleware(600), (req, res) => { // Cache for 10 minutes
   try {
     const myomectomyBrochure = brochures.myomectomy;
     
@@ -73,8 +74,8 @@ app.get('/brochures/myomectomy', (req, res) => {
   }
 });
 
-// GET /brochures - Returns list of available brochures
-app.get('/brochures', (req, res) => {
+// GET /brochures - Returns list of available brochures (cached)
+app.get('/brochures', cacheMiddleware(300), (req, res) => { // Cache for 5 minutes
   try {
     const availableBrochures = Object.keys(brochures).map(key => ({
       id: key,
@@ -190,16 +191,39 @@ app.use((req, res) => {
   });
 });
 
+// Cache management endpoint (for development/admin)
+app.post('/admin/cache/clear', (req, res) => {
+  clearCache()
+    .then(() => {
+      res.status(200).json({
+        success: true,
+        message: 'Cache cleared successfully',
+        timestamp: new Date().toISOString()
+      });
+    })
+    .catch(error => {
+      res.status(500).json({
+        error: 'Failed to clear cache',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    });
+});
+
 // Start server
 async function startServer() {
   try {
     // Try to connect to database (optional for MVP)
     await connectToDatabase();
-    
+
+    // Try to connect to Redis (optional for caching)
+    await connectToRedis();
+
     app.listen(PORT, () => {
       console.log(`🚀 Aftercare Backend API running on port ${PORT}`);
       console.log(`📋 Health check: http://localhost:${PORT}/health`);
       console.log(`📖 Brochures: http://localhost:${PORT}/brochures/myomectomy`);
+      console.log(`🗑️  Cache management: http://localhost:${PORT}/admin/cache/clear`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

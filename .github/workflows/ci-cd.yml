@@ -23,32 +23,32 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
         cache-dependency-path: |
-          Backend/package-lock.json
-          Frontend/package-lock.json
-    
+          server/package-lock.json
+          client/package-lock.json
+
     - name: Install Backend Dependencies
       run: |
-        cd Backend
+        cd server
         npm ci
-    
+
     - name: Install Frontend Dependencies
       run: |
-        cd Frontend
+        cd client
         npm ci
-    
+
     - name: Run Backend Tests
       run: |
-        cd Backend
+        cd server
         npm test
-    
+
     - name: Run Frontend Tests
       run: |
-        cd Frontend
+        cd client
         npm test
-    
+
     - name: Build Frontend
       run: |
-        cd Frontend
+        cd client
         npm run build
 
   deploy-frontend:
@@ -64,21 +64,21 @@ jobs:
       with:
         node-version: 18.x
         cache: 'npm'
-        cache-dependency-path: Frontend/package-lock.json
-    
+        cache-dependency-path: client/package-lock.json
+
     - name: Install and Build Frontend
       run: |
-        cd Frontend
+        cd client
         npm ci
         npm run build
-    
+
     - name: Deploy to Vercel
       uses: amondnet/vercel-action@v25
       with:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
         vercel-org-id: ${{ secrets.ORG_ID }}
         vercel-project-id: ${{ secrets.PROJECT_ID }}
-        working-directory: ./Frontend
+        working-directory: ./client
 
   deploy-backend:
     needs: test
@@ -105,7 +105,7 @@ jobs:
         ECR_REPOSITORY: aftercare-backend
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        cd Backend
+        cd server
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
     
