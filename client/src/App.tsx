@@ -15,19 +15,25 @@ import {
   useBreakpointValue
 } from '@chakra-ui/react'
 import Header from './components/Header'
+import OnboardingModal from './components/OnboardingModal'
+import ProgressTracker from './components/ProgressTracker'
 // Lazy load components for better performance
 const BrochureSection = lazy(() => import('./components/BrochureSection'))
 const InteractiveTracker = lazy(() => import('./components/InteractiveTracker'))
-import { TrackerProvider } from './context/TrackerContext'
+import { TrackerProvider, useTracker } from './context/TrackerContext'
 import { brochureApi, checkApiConnectivity, handleApiError } from './services/api'
 import type { BrochureData } from './types'
 
-function App() {
+// Main app content component that uses tracker context
+const AppContent: React.FC = () => {
   const [brochureData, setBrochureData] = useState<BrochureData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [apiConnected, setApiConnected] = useState(false)
   const toast = useToast()
+
+  // Use tracker context for onboarding and progress
+  const { state: trackerState, completeOnboarding, calculateProgress } = useTracker()
 
   // Responsive grid layout
   const gridTemplateColumns = useBreakpointValue({
@@ -205,6 +211,13 @@ function App() {
             </Alert>
           )}
 
+          {/* Progress Tracker */}
+          <ProgressTracker
+            progress={trackerState.progress}
+            totalTasks={trackerState.totalTasks}
+            completedTasks={trackerState.data.todos.filter(todo => todo.completed).length}
+          />
+
           {/* Main Content Grid */}
           <Grid
             templateColumns={gridTemplateColumns}
@@ -284,16 +297,30 @@ function App() {
                     </VStack>
                   </Box>
                 }>
-                  <TrackerProvider>
-                    <InteractiveTracker />
-                  </TrackerProvider>
+                  <InteractiveTracker />
                 </Suspense>
               </Box>
             </GridItem>
           </Grid>
         </VStack>
       </Container>
+
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        isOpen={!trackerState.onboardingComplete}
+        onClose={() => {}}
+        onComplete={completeOnboarding}
+      />
     </Box>
+  )
+}
+
+// Main App component with TrackerProvider
+function App() {
+  return (
+    <TrackerProvider>
+      <AppContent />
+    </TrackerProvider>
   )
 }
 

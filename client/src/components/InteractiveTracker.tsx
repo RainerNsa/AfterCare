@@ -35,13 +35,24 @@ import {
   FiRefreshCw,
   FiTrendingUp,
   FiAlertCircle,
-  FiPlus
+  FiPlus,
+  FiDownload,
+  FiTrash2
 } from 'react-icons/fi'
 import { useTracker } from '../context/TrackerContext'
 import EnterpriseCard from './EnterpriseCard'
 
 const InteractiveTracker: React.FC = () => {
-  const { state, toggleTodo, addSymptom, updateNotes, syncWithBackend } = useTracker()
+  const {
+    state,
+    toggleTodo,
+    addSymptom,
+    updateNotes,
+    syncWithBackend,
+    exportToPDF,
+    deleteSymptom,
+    bulkUpdateTodos
+  } = useTracker()
   const [newSymptom, setNewSymptom] = useState('')
   const [symptomSeverity, setSymptomSeverity] = useState<'mild' | 'moderate' | 'severe'>('mild')
   const [patientId] = useState('demo-patient-001') // In a real app, this would come from authentication
@@ -106,6 +117,50 @@ const InteractiveTracker: React.FC = () => {
     }
   }
 
+  const handleExportToPDF = async () => {
+    try {
+      await exportToPDF()
+      toast({
+        title: 'PDF exported successfully',
+        description: 'Your recovery journal has been downloaded',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (error) {
+      toast({
+        title: 'Export failed',
+        description: 'Could not generate PDF. Please try again.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    }
+  }
+
+  const handleDeleteSymptom = (symptomId: string) => {
+    deleteSymptom(symptomId)
+    toast({
+      title: 'Symptom deleted',
+      description: 'The symptom entry has been removed',
+      status: 'info',
+      duration: 2000,
+      isClosable: true,
+    })
+  }
+
+  const handleMarkAllTodos = (completed: boolean) => {
+    const todoIds = state.data.todos.map(todo => todo.id)
+    bulkUpdateTodos(todoIds, completed)
+    toast({
+      title: completed ? 'All tasks completed!' : 'All tasks reset',
+      description: `${todoIds.length} tasks ${completed ? 'marked as complete' : 'unmarked'}`,
+      status: completed ? 'success' : 'info',
+      duration: 2000,
+      isClosable: true,
+    })
+  }
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'mild': return 'green'
@@ -132,17 +187,28 @@ const InteractiveTracker: React.FC = () => {
         }}
         variant="elevated"
         headerAction={
-          <Button
-            onClick={handleSyncWithBackend}
-            size="sm"
-            variant="ghost"
-            colorScheme="brand"
-            isLoading={state.loading}
-            loadingText="Syncing..."
-            leftIcon={<Icon as={FiRefreshCw} />}
-          >
-            Sync
-          </Button>
+          <HStack spacing={2}>
+            <Button
+              onClick={handleExportToPDF}
+              size="sm"
+              variant="ghost"
+              colorScheme="purple"
+              leftIcon={<Icon as={FiDownload} />}
+            >
+              Export PDF
+            </Button>
+            <Button
+              onClick={handleSyncWithBackend}
+              size="sm"
+              variant="ghost"
+              colorScheme="brand"
+              isLoading={state.loading}
+              loadingText="Syncing..."
+              leftIcon={<Icon as={FiRefreshCw} />}
+            >
+              Sync
+            </Button>
+          </HStack>
         }
       >
         <VStack spacing={4}>
@@ -215,7 +281,29 @@ const InteractiveTracker: React.FC = () => {
         }}
         variant="default"
       >
-        <VStack align="stretch" spacing={3}>
+        <VStack align="stretch" spacing={4}>
+          {/* Bulk Actions */}
+          <HStack spacing={2} justify="flex-end">
+            <Button
+              onClick={() => handleMarkAllTodos(true)}
+              size="xs"
+              variant="ghost"
+              colorScheme="green"
+              leftIcon={<Icon as={FiCheckCircle} />}
+            >
+              Complete All
+            </Button>
+            <Button
+              onClick={() => handleMarkAllTodos(false)}
+              size="xs"
+              variant="ghost"
+              colorScheme="gray"
+              leftIcon={<Icon as={FiRefreshCw} />}
+            >
+              Reset All
+            </Button>
+          </HStack>
+
           {state.data.todos.map((todo, index) => (
             <Box
               key={todo.id}
@@ -385,18 +473,29 @@ const InteractiveTracker: React.FC = () => {
                         >
                           {symptom.symptom}
                         </Text>
-                        <Badge
-                          colorScheme={getSeverityColor(symptom.severity)}
-                          variant="solid"
-                          borderRadius="full"
-                          px={3}
-                          py={1}
-                          fontSize="xs"
-                          fontWeight="700"
-                          textTransform="uppercase"
-                        >
-                          {symptom.severity}
-                        </Badge>
+                        <HStack spacing={2}>
+                          <Badge
+                            colorScheme={getSeverityColor(symptom.severity)}
+                            variant="solid"
+                            borderRadius="full"
+                            px={3}
+                            py={1}
+                            fontSize="xs"
+                            fontWeight="700"
+                            textTransform="uppercase"
+                          >
+                            {symptom.severity}
+                          </Badge>
+                          <Button
+                            size="xs"
+                            variant="ghost"
+                            colorScheme="red"
+                            onClick={() => handleDeleteSymptom(symptom.id)}
+                            leftIcon={<Icon as={FiTrash2} />}
+                          >
+                            Delete
+                          </Button>
+                        </HStack>
                       </HStack>
 
                       <HStack spacing={2}>

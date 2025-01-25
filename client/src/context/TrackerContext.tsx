@@ -2,7 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, ReactNode } fr
 import { trackerApi, handleApiError } from '../services/api'
 import type { TrackerData, TodoItem, SymptomEntry, PatientTracker } from '../types'
 
-// Action types for the reducer
+// Enhanced action types for the reducer
 type TrackerAction =
   | { type: 'SET_TRACKER_DATA'; payload: TrackerData }
   | { type: 'TOGGLE_TODO'; payload: string }
@@ -11,17 +11,27 @@ type TrackerAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'SYNC_WITH_BACKEND'; payload: boolean }
+  | { type: 'SET_PROGRESS'; payload: number }
+  | { type: 'SET_ONBOARDING_COMPLETE'; payload: boolean }
+  | { type: 'RESET_TRACKER'; payload: TrackerData }
+  | { type: 'BULK_UPDATE_TODOS'; payload: { ids: string[]; completed: boolean } }
+  | { type: 'DELETE_SYMPTOM'; payload: string }
+  | { type: 'UPDATE_SYMPTOM'; payload: { id: string; symptom: Partial<SymptomEntry> } }
 
-// State interface
+// Enhanced state interface with new features
 interface TrackerState {
   data: TrackerData
   loading: boolean
   error: string | null
   lastSyncedWithBackend: Date | null
   isOnline: boolean
+  progress: number
+  onboardingComplete: boolean
+  totalTasks: number
+  completedTasks: number
 }
 
-// Context interface
+// Enhanced context interface with new methods
 interface TrackerContextType {
   state: TrackerState
   toggleTodo: (todoId: string) => void
@@ -30,6 +40,13 @@ interface TrackerContextType {
   syncWithBackend: (patientId: string) => Promise<void>
   loadFromLocalStorage: () => void
   saveToLocalStorage: () => void
+  exportToPDF: () => Promise<void>
+  resetTracker: () => void
+  bulkUpdateTodos: (ids: string[], completed: boolean) => void
+  deleteSymptom: (id: string) => void
+  updateSymptom: (id: string, updates: Partial<SymptomEntry>) => void
+  completeOnboarding: () => void
+  calculateProgress: () => number
 }
 
 // Initial state
@@ -51,7 +68,11 @@ const initialState: TrackerState = {
   loading: false,
   error: null,
   lastSyncedWithBackend: null,
-  isOnline: navigator.onLine
+  isOnline: navigator.onLine,
+  progress: 0,
+  onboardingComplete: localStorage.getItem('aftercare-onboarding-complete') === 'true',
+  totalTasks: initialTrackerData.todos.length,
+  completedTasks: 0
 }
 
 // Reducer function
@@ -115,7 +136,65 @@ function trackerReducer(state: TrackerState, action: TrackerAction): TrackerStat
         ...state,
         lastSyncedWithBackend: action.payload ? new Date() : null
       }
-    
+
+    case 'SET_PROGRESS':
+      return {
+        ...state,
+        progress: action.payload
+      }
+
+    case 'SET_ONBOARDING_COMPLETE':
+      return {
+        ...state,
+        onboardingComplete: action.payload
+      }
+
+    case 'RESET_TRACKER':
+      return {
+        ...state,
+        data: action.payload,
+        progress: 0,
+        completedTasks: 0
+      }
+
+    case 'BULK_UPDATE_TODOS':
+      return {
+        ...state,
+        data: {
+          ...state.data,
+          todos: state.data.todos.map(todo =>
+            action.payload.ids.includes(todo.id)
+              ? { ...todo, completed: action.payload.completed, timestamp: new Date() }
+              : todo
+          ),
+          lastUpdated: new Date()
+        }
+      }
+
+    case 'DELETE_SYMPTOM':
+      return {
+        ...state,
+        data: {
+          ...state.data,
+          symptoms: state.data.symptoms.filter(symptom => symptom.id !== action.payload),
+          lastUpdated: new Date()
+        }
+      }
+
+    case 'UPDATE_SYMPTOM':
+      return {
+        ...state,
+        data: {
+          ...state.data,
+          symptoms: state.data.symptoms.map(symptom =>
+            symptom.id === action.payload.id
+              ? { ...symptom, ...action.payload.symptom, timestamp: new Date() }
+              : symptom
+          ),
+          lastUpdated: new Date()
+        }
+      }
+
     default:
       return state
   }
@@ -184,7 +263,30 @@ export const TrackerProvider: React.FC<TrackerProviderProps> = ({ children }) =>
 
   const saveToLocalStorage = () => {
     try {
-      localStorage.setItem('aftercare-tracker', JSON.stringify(state.data))
+      // Enhanced localStorage with metadata
+      const dataToSave = {
+        ...state.data,
+        metadata: {
+          version: '1.0.0',
+          lastSaved: new Date().toISOString(),
+          deviceInfo: {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            language: navigator.language
+          }
+        }
+      }
+
+      localStorage.setItem('aftercare-tracker', JSON.stringify(dataToSave))
+
+      // Also save progress data separately for quick access
+      localStorage.setItem('aftercare-progress', JSON.stringify({
+        progress: state.progress,
+        totalTasks: state.totalTasks,
+        completedTasks: state.completedTasks,
+        lastUpdated: new Date().toISOString()
+      }))
+
     } catch (error) {
       console.error('Error saving to localStorage:', error)
       dispatch({ type: 'SET_ERROR', payload: 'Failed to save data locally' })
@@ -243,6 +345,58 @@ export const TrackerProvider: React.FC<TrackerProviderProps> = ({ children }) =>
     }
   }
 
+  // New enhanced methods
+  const exportToPDF = async () => {
+    const { exportTrackerToPDF } = await import('../utils/pdfExport')
+    const progressData = {
+      progress: calculateProgress(),
+      totalTasks: state.totalTasks,
+      completedTasks: state.completedTasks
+    }
+
+    await exportTrackerToPDF(state.data, {
+      procedureType: 'Myomectomy Recovery',
+      patientName: 'Patient' // Could be enhanced with actual patient data
+    })
+  }
+
+  const resetTracker = () => {
+    dispatch({ type: 'RESET_TRACKER', payload: initialTrackerData })
+  }
+
+  const bulkUpdateTodos = (ids: string[], completed: boolean) => {
+    dispatch({ type: 'BULK_UPDATE_TODOS', payload: { ids, completed } })
+  }
+
+  const deleteSymptom = (id: string) => {
+    dispatch({ type: 'DELETE_SYMPTOM', payload: id })
+  }
+
+  const updateSymptom = (id: string, updates: Partial<SymptomEntry>) => {
+    dispatch({ type: 'UPDATE_SYMPTOM', payload: { id, symptom: updates } })
+  }
+
+  const completeOnboarding = () => {
+    localStorage.setItem('aftercare-onboarding-complete', 'true')
+    dispatch({ type: 'SET_ONBOARDING_COMPLETE', payload: true })
+  }
+
+  const calculateProgress = (): number => {
+    const completedTodos = state.data.todos.filter(todo => todo.completed).length
+    const totalTodos = state.data.todos.length
+    const progress = totalTodos > 0 ? (completedTodos / totalTodos) * 100 : 0
+
+    // Update progress in state
+    dispatch({ type: 'SET_PROGRESS', payload: progress })
+
+    return progress
+  }
+
+  // Calculate progress whenever todos change
+  useEffect(() => {
+    calculateProgress()
+  }, [state.data.todos])
+
   const contextValue: TrackerContextType = {
     state,
     toggleTodo,
@@ -250,7 +404,14 @@ export const TrackerProvider: React.FC<TrackerProviderProps> = ({ children }) =>
     updateNotes,
     syncWithBackend,
     loadFromLocalStorage,
-    saveToLocalStorage
+    saveToLocalStorage,
+    exportToPDF,
+    resetTracker,
+    bulkUpdateTodos,
+    deleteSymptom,
+    updateSymptom,
+    completeOnboarding,
+    calculateProgress
   }
 
   return (
