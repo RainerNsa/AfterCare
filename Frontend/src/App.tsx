@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense, lazy } from 'react'
 import {
   Box,
   Container,
@@ -15,8 +15,9 @@ import {
   useBreakpointValue
 } from '@chakra-ui/react'
 import Header from './components/Header'
-import BrochureSection from './components/BrochureSection'
-import InteractiveTracker from './components/InteractiveTracker'
+// Lazy load components for better performance
+const BrochureSection = lazy(() => import('./components/BrochureSection'))
+const InteractiveTracker = lazy(() => import('./components/InteractiveTracker'))
 import { TrackerProvider } from './context/TrackerContext'
 import { brochureApi, checkApiConnectivity, handleApiError } from './services/api'
 import type { BrochureData } from './types'
@@ -212,61 +213,81 @@ function App() {
           >
             {/* Left Column - Brochure Content */}
             <GridItem>
-              <VStack spacing={6} align="stretch">
-                {brochureData && (
-                  <>
-                    <BrochureSection
-                      title="Activity Restrictions"
-                      items={brochureData.activityRestrictions}
-                      type="list"
-                    />
+              <Suspense fallback={
+                <VStack spacing={6} align="center" minH="40vh" justify="center">
+                  <Spinner size="lg" color="brand.600" />
+                  <Text fontSize="md" color="semantic.text.muted">
+                    Loading care instructions...
+                  </Text>
+                </VStack>
+              }>
+                <VStack spacing={6} align="stretch">
+                  {brochureData && (
+                    <>
+                      <BrochureSection
+                        title="Activity Restrictions"
+                        items={brochureData.activityRestrictions}
+                        type="list"
+                      />
 
-                    <BrochureSection
-                      title="Warning Signs - Contact Your Doctor Immediately"
-                      items={brochureData.warningSigns}
-                      type="warning"
-                    />
+                      <BrochureSection
+                        title="Warning Signs - Contact Your Doctor Immediately"
+                        items={brochureData.warningSigns}
+                        type="warning"
+                      />
 
-                    <BrochureSection
-                      title="Pain Management"
-                      items={brochureData.painManagement}
-                      type="list"
-                    />
+                      <BrochureSection
+                        title="Pain Management"
+                        items={brochureData.painManagement}
+                        type="list"
+                      />
 
-                    <BrochureSection
-                      title="Follow-up Schedule"
-                      items={brochureData.followUpSchedule}
-                      type="timeline"
-                    />
+                      <BrochureSection
+                        title="Follow-up Schedule"
+                        items={brochureData.followUpSchedule}
+                        type="timeline"
+                      />
 
-                    <BrochureSection
-                      title="Healing Timeline"
-                      items={brochureData.healingTimeline}
-                      type="timeline"
-                    />
+                      <BrochureSection
+                        title="Healing Timeline"
+                        items={brochureData.healingTimeline}
+                        type="timeline"
+                      />
 
-                    <BrochureSection
-                      title="Dietary Guidelines"
-                      items={brochureData.dietaryGuidelines}
-                      type="list"
-                    />
+                      <BrochureSection
+                        title="Dietary Guidelines"
+                        items={brochureData.dietaryGuidelines}
+                        type="list"
+                      />
 
-                    <BrochureSection
-                      title="Incision Care"
-                      items={brochureData.incisionCare}
-                      type="list"
-                    />
-                  </>
-                )}
-              </VStack>
+                      <BrochureSection
+                        title="Incision Care"
+                        items={brochureData.incisionCare}
+                        type="list"
+                      />
+                    </>
+                  )}
+                </VStack>
+              </Suspense>
             </GridItem>
 
             {/* Right Column - Interactive Tracker */}
             <GridItem>
               <Box position="sticky" top={6}>
-                <TrackerProvider>
-                  <InteractiveTracker />
-                </TrackerProvider>
+                <Suspense fallback={
+                  <Box p={6} bg="white" borderRadius="xl" shadow="sm">
+                    <VStack spacing={4} align="center">
+                      <Spinner size="md" color="brand.600" />
+                      <Text fontSize="sm" color="semantic.text.muted">
+                        Loading tracker...
+                      </Text>
+                    </VStack>
+                  </Box>
+                }>
+                  <TrackerProvider>
+                    <InteractiveTracker />
+                  </TrackerProvider>
+                </Suspense>
               </Box>
             </GridItem>
           </Grid>

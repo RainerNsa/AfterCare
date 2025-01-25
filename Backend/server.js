@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
+const compression = require('compression');
 require('dotenv').config();
 
 const brochures = require('./data/brochures');
@@ -11,10 +13,25 @@ const { connectToDatabase, getDatabase } = require('./config/database');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Rate limiting configuration
+const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: {
+    error: 'Too many requests',
+    message: 'Too many requests from this IP, please try again later.',
+    retryAfter: '1 minute'
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
 // Middleware
+app.use(compression()); // Enable gzip compression
 app.use(helmet());
+app.use(limiter); // Apply rate limiting to all requests
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5174',
   credentials: true
 }));
 app.use(morgan('combined'));

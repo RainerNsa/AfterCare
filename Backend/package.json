@@ -8,14 +8,21 @@
     "dev": "nodemon server.js",
     "test": "node test/api.test.js"
   },
-  "keywords": ["aftercare", "patient", "medical", "api"],
+  "keywords": [
+    "aftercare",
+    "patient",
+    "medical",
+    "api"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
     "helmet": "^8.1.0",
     "mongodb": "^6.18.0",
     "morgan": "^1.10.1"

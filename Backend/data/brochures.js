@@ -3,6 +3,7 @@ const brochures = {
   myomectomy: {
     title: "Myomectomy Post-Operative Care Instructions",
     lastUpdated: "2025-01-25",
+    contentVersion: "v1.0.0",
     activityRestrictions: [
       "Lifting: Avoid lifting more than 1 gallon of milk (approximately 8 lbs) for 4-6 weeks",
       "Driving: Restricted until pain medications are discontinued and you can safely operate a vehicle",
