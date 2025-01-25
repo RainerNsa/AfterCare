@@ -55,8 +55,8 @@ const Header: React.FC<HeaderProps> = ({
         bgSize="24px 24px"
       />
       
-      <Container maxW="container.xl" position="relative">
-        <VStack spacing={[4, 6]} align="stretch">
+      <Container maxW={["100%", "container.xl"]} position="relative" p={0}>
+        <VStack spacing={[4, 6]} align="stretch" w="100%">
           {/* Main Header */}
           <Flex
             direction={["column", "row"]}
@@ -64,6 +64,7 @@ const Header: React.FC<HeaderProps> = ({
             align={["stretch", "flex-start"]}
             wrap="wrap"
             gap={[2, 4]}
+            w="100%"
           >
             <VStack align="flex-start" spacing={[1, 2]} w={["100%", "auto"]}>
               <HStack spacing={[2, 3]}>

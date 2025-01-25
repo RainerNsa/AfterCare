@@ -61,8 +61,9 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
       border="1px"
       borderColor={borderColor}
       shadow="sm"
+      w="100%"
     >
-      <VStack spacing={[3, 4]} align="stretch">
+      <VStack spacing={[3, 4]} align="stretch" w="100%">
         <HStack justify="space-between" align="center" flexDir={["column", "row"]} spacing={[2, 4]}>
           <HStack spacing={[1, 2]}>
             <Icon 
