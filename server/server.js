@@ -32,7 +32,22 @@ app.use(compression()); // Enable gzip compression
 app.use(helmet());
 app.use(limiter); // Apply rate limiting to all requests
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5174',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      process.env.FRONTEND_URL
+    ].filter(Boolean);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(morgan('combined'));
@@ -213,14 +228,27 @@ app.post('/admin/cache/clear', (req, res) => {
 // Start server
 async function startServer() {
   try {
+    console.log('🚀 Starting Aftercare Backend API...');
+    
     // Try to connect to database (optional for MVP)
-    await connectToDatabase();
-
+    const dbConnected = await connectToDatabase();
+    
     // Try to connect to Redis (optional for caching)
-    await connectToRedis();
+    const redisConnected = await connectToRedis();
+    
+    // Log the running mode
+    if (!dbConnected && !redisConnected) {
+      console.log('📋 Running in MVP mode (no database/cache)');
+    } else if (!dbConnected) {
+      console.log('📋 Running with cache only (no database)');
+    } else if (!redisConnected) {
+      console.log('📋 Running with database only (no cache)');
+    } else {
+      console.log('📋 Running with full database and cache');
+    }
 
     app.listen(PORT, () => {
-      console.log(`🚀 Aftercare Backend API running on port ${PORT}`);
+      console.log(`✅ Server running on port ${PORT}`);
       console.log(`📋 Health check: http://localhost:${PORT}/health`);
       console.log(`📖 Brochures: http://localhost:${PORT}/brochures/myomectomy`);
       console.log(`🗑️  Cache management: http://localhost:${PORT}/admin/cache/clear`);

@@ -17,29 +17,32 @@ async function connectToRedis() {
     redisClient = createClient({
       url: REDIS_URL,
       socket: {
-        connectTimeout: 5000,
+        connectTimeout: 3000, // Reduced timeout
         lazyConnect: true,
       },
       retry_strategy: (options) => {
         if (options.error && options.error.code === 'ECONNREFUSED') {
-          console.warn('⚠️  Redis server refused connection');
+          console.warn('⚠️  Redis not available (running without cache)');
           return null; // Don't retry
         }
-        if (options.total_retry_time > 1000 * 60 * 60) {
-          console.warn('⚠️  Redis retry time exhausted');
+        if (options.total_retry_time > 1000 * 30) { // Reduced to 30 seconds
+          console.warn('⚠️  Redis connection timeout');
           return null;
         }
-        if (options.attempt > 3) {
+        if (options.attempt > 2) { // Reduced attempts
           console.warn('⚠️  Redis max retry attempts reached');
           return null;
         }
-        return Math.min(options.attempt * 100, 3000);
+        return Math.min(options.attempt * 100, 1000); // Reduced backoff
       }
     });
 
     // Error handling
     redisClient.on('error', (err) => {
-      console.warn('⚠️  Redis connection error:', err.message);
+      // Only log first error to reduce noise
+      if (!isRedisConnected && err.code !== 'ECONNREFUSED') {
+        console.warn('⚠️  Redis connection error:', err.message);
+      }
       isRedisConnected = false;
     });
 
