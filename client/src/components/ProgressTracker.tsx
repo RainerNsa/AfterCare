@@ -64,14 +64,14 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
       w="100%"
     >
       <VStack spacing={[3, 4]} align="stretch" w="100%">
-        <HStack justify="space-between" align="center" flexDir={["column", "row"]} spacing={[2, 4]}>
-          <HStack spacing={[1, 2]}>
+        <HStack justify="space-between" align="center" flexDir={["column", "row"]} spacing={[2, 4]} w="100%">
+          <HStack spacing={[1, 2]} w="100%">
             <Icon 
               as={getMilestoneIcon(progress)} 
               color={`${getProgressColor(progress)}.500`} 
               boxSize={[4, 5]} 
             />
-            <Text fontSize={["md", "lg"]} fontWeight="semibold" color="semantic.text.body">
+            <Text fontSize={["md", "lg"]} fontWeight="semibold" color="semantic.text.body" w="100%">
               Recovery Progress
             </Text>
           </HStack>
@@ -88,7 +88,7 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
           </Badge>
         </HStack>
 
-        <Box>
+        <Box w="100%">
           <Progress
             value={progress}
             colorScheme={getProgressColor(progress)}
@@ -97,11 +97,11 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
             bg={progressBgColor}
           />
           
-          <HStack justify="space-between" mt={2} flexDir={["column", "row"]} spacing={[1, 4]}>
-            <Text fontSize={["xs", "sm"]} color="semantic.text.muted">
+          <HStack justify="space-between" mt={2} flexDir={["column", "row"]} spacing={[1, 4]} w="100%">
+            <Text fontSize={["xs", "sm"]} color="semantic.text.muted" w="100%">
               {completedTasks} of {totalTasks} tasks completed
             </Text>
-            <Text fontSize={["xs", "sm"]} color={`${getProgressColor(progress)}.600`} fontWeight="medium">
+            <Text fontSize={["xs", "sm"]} color={`${getProgressColor(progress)}.600`} fontWeight="medium" w="100%">
               {Math.round(progress)}%
             </Text>
           </HStack>
@@ -113,19 +113,21 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
           borderRadius="lg"
           border="1px"
           borderColor={`${getProgressColor(progress)}.200`}
+          w="100%"
         >
           <Text
             fontSize={["xs", "sm"]}
             color={`${getProgressColor(progress)}.700`}
             fontWeight="medium"
             textAlign="center"
+            w="100%"
           >
             {getProgressMessage(progress)}
           </Text>
         </Box>
 
         {/* Milestone indicators */}
-        <HStack justify="space-between" spacing={1} flexWrap="wrap">
+        <HStack justify="space-between" spacing={1} flexWrap="wrap" w="100%">
           {[25, 50, 75, 100].map((milestone) => (
             <Tooltip
               key={milestone}
@@ -155,11 +157,12 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
             borderRadius="lg"
             border="1px"
             borderColor={insightBorderColor}
+            w="100%"
           >
-            <Text fontSize={["2xs", "xs"]} color="blue.600" fontWeight="medium" mb={1}>
+            <Text fontSize={["2xs", "xs"]} color="blue.600" fontWeight="medium" mb={1} w="100%">
               💡 Recovery Insight
             </Text>
-            <Text fontSize={["2xs", "xs"]} color="blue.700" lineHeight="1.4">
+            <Text fontSize={["2xs", "xs"]} color="blue.700" lineHeight="1.4" w="100%">
               {progress >= 75 
                 ? "You're in the final stretch! Focus on gradual activity increases."
                 : progress >= 50

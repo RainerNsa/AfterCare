@@ -55,8 +55,8 @@ const Header: React.FC<HeaderProps> = ({
         bgSize="24px 24px"
       />
       
-      <Container maxW={["100%", "container.xl"]} position="relative" p={0}>
-        <VStack spacing={[4, 6]} align="stretch" w="100%">
+      <Container maxW="container.xl" position="relative">
+        <VStack spacing={[4, 6]} align="stretch">
           {/* Main Header */}
           <Flex
             direction={["column", "row"]}
@@ -66,20 +66,20 @@ const Header: React.FC<HeaderProps> = ({
             gap={[2, 4]}
             w="100%"
           >
-            <VStack align="flex-start" spacing={[1, 2]} w={["100%", "auto"]}>
-              <HStack spacing={[2, 3]}>
+            <VStack align="flex-start" spacing={[1, 2]} w="100%">
+              <HStack spacing={[2, 3]} w="100%">
                 <Icon as={FiActivity} boxSize={[6, 8]} />
-                <VStack align="flex-start" spacing={0}>
-                  <Heading as="h1" fontSize={["lg", "xl"]} fontWeight="800">
+                <VStack align="flex-start" spacing={0} w="100%">
+                  <Heading as="h1" fontSize={["lg", "xl"]} fontWeight="800" w="100%">
                     Aftercare Management
                   </Heading>
-                  <Text fontSize={["md", "lg"]} opacity={0.9} fontWeight="500">
+                  <Text fontSize={["md", "lg"]} opacity={0.9} fontWeight="500" w="100%">
                     Post-Operative Recovery Platform
                   </Text>
                 </VStack>
               </HStack>
               
-              <HStack spacing={[2, 4]} mt={[2, 2]} flexWrap="wrap">
+              <HStack spacing={[2, 4]} mt={[2, 2]} flexWrap="wrap" w="100%">
                 <Badge
                   colorScheme={statusColor}
                   variant="solid"
@@ -127,9 +127,10 @@ const Header: React.FC<HeaderProps> = ({
               minW={["auto", "280px"]}
               w={["100%", "auto"]}
               mt={[4, 0]}
+              maxW="100%"
             >
-              <VStack align="flex-start" spacing={[1, 2]}>
-                <HStack spacing={2}>
+              <VStack align="flex-start" spacing={[1, 2]} w="100%">
+                <HStack spacing={2} w="100%">
                   <Icon as={FiShield} boxSize={[4, 5]} />
                   <Text fontSize={["xs", "sm"]} fontWeight="600" opacity={0.9}>
                     Patient Information
@@ -138,18 +139,18 @@ const Header: React.FC<HeaderProps> = ({
                 
                 <Divider borderColor="whiteAlpha.300" />
                 
-                <VStack align="flex-start" spacing={1} w="full">
-                  <HStack justify="space-between" w="full">
+                <VStack align="flex-start" spacing={1} w="100%">
+                  <HStack justify="space-between" w="100%">
                     <Text fontSize={["xs", "sm"]} opacity={0.8}>Name:</Text>
                     <Text fontSize={["xs", "sm"]} fontWeight="600">{patientName}</Text>
                   </HStack>
                   
-                  <HStack justify="space-between" w="full">
+                  <HStack justify="space-between" w="100%">
                     <Text fontSize={["xs", "sm"]} opacity={0.8}>Procedure:</Text>
                     <Text fontSize={["xs", "sm"]} fontWeight="600">{procedureType}</Text>
                   </HStack>
                   
-                  <HStack justify="space-between" w="full">
+                  <HStack justify="space-between" w="100%">
                     <Text fontSize={["xs", "sm"]} opacity={0.8}>Date:</Text>
                     <Text fontSize={["xs", "sm"]} fontWeight="600">
                       {new Date().toLocaleDateString()}
@@ -167,9 +168,10 @@ const Header: React.FC<HeaderProps> = ({
             p={[3, 4]}
             border="1px solid"
             borderColor="whiteAlpha.300"
+            w="100%"
           >
-            <HStack justify="space-between" align="center" flexDir={["column", "row"]} spacing={[2, 4]}>
-              <VStack align="flex-start" spacing={1}>
+            <HStack justify="space-between" align="center" flexDir={["column", "row"]} spacing={[2, 4]} w="100%">
+              <VStack align="flex-start" spacing={1} w="100%">
                 <Text fontSize={["xs", "sm"]} fontWeight="600" opacity={0.9}>
                   Recovery Progress
                 </Text>
@@ -178,7 +180,7 @@ const Header: React.FC<HeaderProps> = ({
                 </Text>
               </VStack>
               
-              <HStack spacing={[2, 4]} mt={[2, 0]}>
+              <HStack spacing={[2, 4]} mt={[2, 0]} w="100%" justify={["space-between", "flex-start"]}>
                 <VStack spacing={1}>
                   <Text fontSize={["2xs", "xs"]} opacity={0.7}>Today</Text>
                   <Text fontSize={["md", "lg"]} fontWeight="700">Day 1</Text>
