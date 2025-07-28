@@ -81,7 +81,7 @@
 - ✅ **Analytics**: Track engagement with specific content sections
 - ✅ **Search**: Full-text search within care instructions
 
-## 🔒 **Security & Scaling Considerations**
+## � **Security & Scaling Considerations**
 
 ### **Security Framework**
 - **Authentication**: OAuth 2.0 + JWT with refresh tokens
@@ -118,7 +118,7 @@
 - **Caching**: Multi-layer (Redis + Application + CDN)
 - **Load Balancing**: AWS ALB with health checks
 
-## 🚀 **Deployment Architecture**
+## � **Deployment Architecture**
 
 ### **Production Deployment Stack**
 ```yaml
@@ -152,7 +152,7 @@ Mobile:
 - **Monitoring**: DataDog + PagerDuty for incident management
 - **Security**: AWS Security Hub + Snyk for vulnerability scanning
 
-## 👤 **Patient Personalization Strategy**
+## � **Patient Personalization Strategy**
 
 ### **EHR Integration Architecture**
 ```javascript
